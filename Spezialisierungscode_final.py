@@ -510,9 +510,9 @@ auswahl = input('Wähle Background fiel removal (LBV, V_SHARP_2d, V_SHARP_3d, V_
 if auswahl == 'LBV':
     print('LBV wird durchgeführt.')
     eng.cd(r'C:\Users\sehbir01\Documents\Matlab-Skripte\MEDI_toolbox_eb\functions\_LBV', nargout=0)
-    local_field = eng.LBV(total_field, Mask, matrix_size, voxel_size_mlb, nargout = 1)
+    internal_field = eng.LBV(total_field, Mask, matrix_size, voxel_size_mlb, nargout = 1)
     #fL = eng.LBV(iFreq, Mask, matrix_size, voxel_size_mlb, tol, depth, peel, N1, N2, N3, nargout = 1)
-    background_field_removal = np.array(local_field._data).reshape(local_field.size, order ='F')
+    background_field_removal = np.array(internal_field._data).reshape(internal_field.size, order ='F')
     img=plt.imshow(background_field_removal[:,:,13]/np.pi, cmap='gray')
     cbar = plt.colorbar(img, label='Phase des lokalen Felds [rad]')
     cbar.set_ticks([-2, -1 , 0, 1, 2])
@@ -525,7 +525,7 @@ if auswahl == 'LBV':
     plt.close()
 
 # Output:
-#	local_field - lokales Feld 
+#	internal_field - internes bzw. lokales Feld, enthält die Gewebe-Informationen
 
 # Input:
 #	total_field - Gesamtes Feld
@@ -548,13 +548,13 @@ elif auswahl == 'V_SHARP_2d':
     padsize = matlab.double((12, 12, 12)) #default
 
     eng.cd(r'C:\Users\sehbir01\Documents\Matlab-Skripte\STISuite_V3.0\Core_Functions_P', nargout=0)
-    local_field = eng.V_SHARP_2d(total_field,Mask,'voxelsize',voxel_size_mlb,'padsize',padsize,'smvsize',smvsize)
-    background_field_removal = np.array(local_field._data).reshape(local_field.size, order ='F')
+    internal_field = eng.V_SHARP_2d(total_field,Mask,'voxelsize',voxel_size_mlb,'padsize',padsize,'smvsize',smvsize)
+    background_field_removal = np.array(internal_field._data).reshape(internal_field.size, order ='F')
 
     #plt.imshow(background_field_removal[:,:,13], cmap='gray')
     img=plt.imshow(background_field_removal[:,:,13]/np.pi, cmap='gray')
     #plt.colorbar(label='Phase in rad')
-    cbar = plt.colorbar(img, label='Phase des lokalen Felds [rad]')
+    cbar = plt.colorbar(img, label='Phase des internen Felds [rad]')
     cbar.set_ticks([-2, -1 , 0, 1, 2])
     cbar.set_ticklabels(['-2π', '-π', '0', 'π', '2π'])  # Tickbeschriftungen
     plt.title('Resultat nach Background Field Removal mit V_SHARP_2d')
@@ -571,8 +571,8 @@ elif auswahl == 'V_SHARP_3d':
     padsize = matlab.double((12, 12, 12)) #default
 
     eng.cd(r'C:\Users\sehbir01\Documents\Matlab-Skripte\STISuite_V3.0\Core_Functions_P', nargout=0)
-    local_field = eng.V_SHARP(total_field,Mask,'voxelsize',voxel_size_mlb,'smvsize',smvsize)
-    background_field_removal = np.array(local_field._data).reshape(local_field.size, order ='F')
+    internal_field = eng.V_SHARP(total_field,Mask,'voxelsize',voxel_size_mlb,'smvsize',smvsize)
+    background_field_removal = np.array(internal_field._data).reshape(internal_field.size, order ='F')
 
     #plt.imshow(background_field_removal[:,:,13], cmap='gray')
     img=plt.imshow(background_field_removal[:,:,13]/np.pi, cmap='gray')
@@ -594,15 +594,15 @@ elif auswahl == 'V_SHARP_beide':
     padsize = matlab.double((12, 12, 12)) #default
 
     eng.cd(r'C:\Users\sehbir01\Documents\Matlab-Skripte\STISuite_V3.0\Core_Functions_P', nargout=0)
-    local_field_2d = eng.V_SHARP_2d(total_field,Mask,'voxelsize',voxel_size_mlb,'padsize',padsize,'smvsize',smvsize)
+    internal_field_2d = eng.V_SHARP_2d(total_field,Mask,'voxelsize',voxel_size_mlb,'padsize',padsize,'smvsize',smvsize)
 
     eng.cd(r'C:\Users\sehbir01\Documents\Matlab-Skripte\STISuite_V3.0\Core_Functions_P', nargout=0)
-    local_field = eng.V_SHARP(local_field_2d,Mask,'voxelsize',voxel_size_mlb,'smvsize',smvsize)
+    internal_field = eng.V_SHARP(internal_field_2d,Mask,'voxelsize',voxel_size_mlb,'smvsize',smvsize)
 
-    background_field_removal = np.array(local_field._data).reshape(local_field.size, order ='F')
+    background_field_removal = np.array(internal_field._data).reshape(internal_field.size, order ='F')
    
     img=plt.imshow(background_field_removal[:,:,13]/np.pi, cmap='gray')
-    cbar = plt.colorbar(img, label='Phase des lokalen Felds [rad]')
+    cbar = plt.colorbar(img, label='Phase des internen Felds [rad]')
     cbar.set_ticks([-2, -1 , 0, 1, 2])
     cbar.set_ticklabels(['-2π', '-π', '0', 'π', '2π'])  # Tickbeschriftungen
     plt.title('Resultat nach Background Field Removal mit V_SHARP_beide')
@@ -636,13 +636,13 @@ Delta_TE = round(unterschiedliche_TE_mlb._data[1]-unterschiedliche_TE_mlb._data[
 NewMask = Mask # ggf. mit V-SHARP anpassen, um Randpixel auch nicht zur Maske zu zählen
 padsize = matlab.double((12, 12, 12)) # Default
 
-Susceptibility_mlb = eng.QSM_star(local_field,NewMask,'TE', Delta_TE,'B0',B0,'H',B_direction,'padsize',padsize,'voxelsize',voxel_size_mlb, nargout = 1)
+Susceptibility_mlb = eng.QSM_star(internal_field,NewMask,'TE', Delta_TE,'B0',B0,'H',B_direction,'padsize',padsize,'voxelsize',voxel_size_mlb, nargout = 1)
 
 # Output:
 #	Susceptibility: finale QSM-Daten
 	
 # Inputs:
-#	local_field: lokales Feld nach der Hintergrundfeld-Korrektur
+#	internal_field: interne bzw. lokales Feld nach der Hintergrundfeld-Korrektur
 #	NewMask: Neue Maske, kann ggf. angepasst werden
 #	Delta_TE: Echozeitenabstand
 #	B0: B0 Feldstärke in Tesla
